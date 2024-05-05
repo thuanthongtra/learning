@@ -118,14 +118,8 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # MAGIC - Wide Transformation: Causes Shuffle/Exchange (Redistribution of data to new Partitions)
 # MAGIC   - distinct, groupBy, sort, join
 # MAGIC
-# MAGIC ![Narrow vs Wide Transformation](Narrow_And_Wide_Transformation.png)
+# MAGIC ![Narrow vs Wide Transformation](./images/Narrow_And_Wide_Transformation.png)
 # MAGIC
-# MAGIC ADB/Apache_Spark_Developer/images/Narrow_And_Wide_Transformation.png
-# MAGIC https://adb-6218663240151630.10.azuredatabricks.net/?o=6218663240151630#files/3585101443092954
-
-# COMMAND ----------
-
-
 
 # COMMAND ----------
 
