@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # Databricks and Apache Spark
+# MAGIC # 1. Databricks and Apache Spark
 
 # COMMAND ----------
 
@@ -27,7 +27,7 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC # Apache Spark Core
+# MAGIC # 2. Apache Spark Core
 
 # COMMAND ----------
 
@@ -42,7 +42,7 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # MAGIC ## Transformations
 # MAGIC - DataFrame Transformations are **lazily** eveluated (Job won't start until having **Action**)
 # MAGIC   - Schema eagerly evaludated by Driver, but Job not spawned
-# MAGIC   - Benefit of "Lazy Evaludation": Spark can make Optimization decisions after it look at the DAG (Directed Acyclic Graph)
+# MAGIC   - Benefit of "Lazy Evaluation": Spark can make Optimization decisions after it look at the DAG (Directed Acyclic Graph)
 # MAGIC - Actions: are methods that trigger
 # MAGIC   - Job is spawned
 # MAGIC   - Examples: df.count(), df.collect(), df.show(), display(df)
@@ -101,7 +101,7 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC # Spark Architect and Performance
+# MAGIC # 4. Spark Architect and Performance
 
 # COMMAND ----------
 
@@ -128,7 +128,7 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # MAGIC   - distinct, groupBy, sort, join
 # MAGIC   - Redistribute data and then create **new** memory partitions
 # MAGIC   - Redistibuting or re-partitioning data so the data is grouped differently across partitions
-# MAGIC     - Based on data size we may need to decrease/increase the number of Shuffle partitions via ```spark.sql.shffle.patitions```
+# MAGIC     - Based on data size we may need to decrease/increase the number of Shuffle partitions via ```spark.sql.shuffle.patitions```
 # MAGIC
 # MAGIC ![Narrow vs Wide Transformation](./images/Narrow_And_Wide_Transformation.png)
 
@@ -335,16 +335,55 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # MAGIC 1. **`coalesce(int)`:**
 # MAGIC     - Returns new DF with exactly N partitions when N < current No. of Partitions
 # MAGIC     - **Narrow** transformation
-# MAGIC     - Retain sort order
-# MAGIC     - Only decrease No. of Partitions
+# MAGIC     - Pros:
+# MAGIC         - Retain sort order
+# MAGIC         - No shuffle
+# MAGIC     - Cons:
+# MAGIC         - Only decrease No. of Partitions
+# MAGIC         - Unevenly balanced partition sizes
 # MAGIC
 # MAGIC 2. **`repartition(int, [col])`:**
 # MAGIC     - Return new DF with exactly N partitions
-# MAGIC     - Evenly balanced partition sizes
 # MAGIC     - **Wide** transformation
-# MAGIC     - Not retain sort order
-# MAGIC     - Both increase/decrease No. of Partition
+# MAGIC     - Pros:
+# MAGIC         - Evenly balanced partition sizes
+# MAGIC         - Both increase/decrease No. of Partition
+# MAGIC     - Cons:
+# MAGIC         - Not retain sort order
+# MAGIC         - Require Shuffle
 # MAGIC
 # MAGIC **Notes:**
 # MAGIC   - More No. of Partition, less size
 # MAGIC   - Less No. of Paritions, more size
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC # 5. Structured Streaming
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Streaming Query
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Streaming Aggregates
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
