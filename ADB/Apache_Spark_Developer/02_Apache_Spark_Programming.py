@@ -122,7 +122,7 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # MAGIC   - Redistibuting or re-partitioning data so the data is grouped differently across partitions
 # MAGIC     - Based on data size we may need to decrease/increase the number of Shuffle partitions via ```spark.sql.shffle.patitions```
 # MAGIC
-# MAGIC ![Narrow vs Wide Transformation](/images/Narrow_And_Wide_Transformation.png)
+# MAGIC ![Narrow vs Wide Transformation](./images/Narrow_And_Wide_Transformation.png)
 
 # COMMAND ----------
 
@@ -144,7 +144,7 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # MAGIC - Step 5: 4 Cores finish the 2nd iteration and return resul to Driver
 # MAGIC - Step 6: Driver collects the result and delivers to the client
 # MAGIC
-# MAGIC ![Process of Narrow Transformation](/images/Narrow_Transformation_Example.png)
+# MAGIC ![Process of Narrow Transformation](./images/Narrow_Transformation_Example.png)
 
 # COMMAND ----------
 
@@ -163,7 +163,7 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # MAGIC   - Step 2: Core 7 **read** and sum the Local Counts and return the result to Driver
 # MAGIC   - Step 3: Driver collects the result and delivers to the client
 # MAGIC
-# MAGIC ![Process of Wide Transformation](/images/Wide_Transformation_Exmaple.png)
+# MAGIC ![Process of Wide Transformation](./images/Wide_Transformation_Example.png)
 
 # COMMAND ----------
 
@@ -189,6 +189,8 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # MAGIC     - The plan would be **```Java bytecode and sent to Executors```**
 # MAGIC
 # MAGIC **--> Output: RDD, no matter dataframe, sql table or view**
+# MAGIC
+# MAGIC ![Query Optimization](./images/Query_Optimization.png)
 
 # COMMAND ----------
 
