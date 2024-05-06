@@ -106,6 +106,14 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC ### Clusters
+# MAGIC - Example with a Cluster has 1 Driver, 6 Workers. Each Worker has 1 Executor and 2 Cores.
+# MAGIC   - Driver: brain of cluster which allocate tasks and data to worker nodes
+# MAGIC   - Worker: receives tasks and data, performs and return result to Deiver
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## Transformation
 
 # COMMAND ----------
@@ -127,15 +135,7 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### Clusters
-# MAGIC - Example with a Cluster has 1 Driver, 6 Workers. Each Worker has 1 Executor and 2 Cores.
-# MAGIC   - Driver: brain of cluster which allocate tasks and data to worker nodes
-# MAGIC   - Worker: receives tasks and data, performs and return result to Deiver
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ### Process of Narrow Transformation
+# MAGIC #### Process of Narrow Transformation
 # MAGIC Example: Filter color != "brown". We have 12-16 memory partitions of data
 # MAGIC - Step 1: Driver puts data files into 12-16 equal sized parition
 # MAGIC - Step 2: Driver allocates 12 partitions to 12 Cores, each Core gets 1 partition --> Opps we still have 4 partitions left
@@ -149,7 +149,7 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### Process of Wide Transformation
+# MAGIC #### Process of Wide Transformation
 # MAGIC Example: Count total rows for each color. We have **19.5 MiB** data size, with 6 initial partitions
 # MAGIC - Stage 1: Local cCount
 # MAGIC   - Step 1: Driver allocates 6 partitions to 6 Cores, each Core gets 1 partition
@@ -194,7 +194,48 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ### Explain
+# MAGIC ![Explain](./images/Explain.png)
+# MAGIC
+# MAGIC For each step, read from bottom to top
+# MAGIC
+# MAGIC **Step 1: Parsed Logical Plan**
+# MAGIC - It is shown as the script is wrote: Inner Join then Filter
+# MAGIC - Check the schema, e.g. lastname, firstname. dept... (no data types)
+# MAGIC
+# MAGIC **Step 2: Analyzed Logical Plan**
+# MAGIC - Add data type to each column of schema in step 1
+# MAGIC - Add CAST to ```dept``` to double as it is string
+# MAGIC
+# MAGIC It does not display all possible plans, but a optimized plan
+# MAGIC
+# MAGIC **Step 3: Optimized Logical Plan**
+# MAGIC - Move the Filter before Join, to get less rows to join
+# MAGIC
+# MAGIC **Step 4: Physical PLan**
+# MAGIC - Pick the best plan: Filter before Join and choose "Sort Merge Join" instead of "Inner Join"
+# MAGIC
 
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Cost Based Optimization (CBO): Smaller Tables Join
+# MAGIC ![Cost Based Optimization (CBO)](./images/CBO.png)
+# MAGIC
+# MAGIC - Enable configurations: CBO, join reorder
+# MAGIC - In script, (2) we join **```large```** table to **```medium```** table, then (1) we join **```small```** table
+# MAGIC - In CBO step, it chooses to (1) get **```small```** table join with **```medium```** table then koin with **```large```** table last
+# MAGIC
+# MAGIC
+# MAGIC
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Adaptive Query Execution (AQE)
+# MAGIC ![Adaptive Query Execution (AQE)](./images/AQE.png)
+# MAGIC
 
 # COMMAND ----------
 
