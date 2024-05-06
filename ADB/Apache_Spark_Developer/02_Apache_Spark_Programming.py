@@ -115,16 +115,80 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # MAGIC ### Narrow vs Wide Transformation
 # MAGIC - Narrow Transformation: 1-1 Partition
 # MAGIC   - select, filter, cast, union
-# MAGIC - Wide Transformation: Causes Shuffle/Exchange (Redistribution of data to new Partitions)
+# MAGIC   - Start with 1 memory partition, do transformations and data stay within the **same** memory partition
+# MAGIC - Wide Transformation: Causes Shuffle/Exchange
 # MAGIC   - distinct, groupBy, sort, join
+# MAGIC   - Redistribute data and then create **new** memory partitions
+# MAGIC   - Redistibuting or re-partitioning data so the data is grouped differently across partitions
+# MAGIC     - Based on data size we may need to decrease/increase the number of Shuffle partitions via ```spark.sql.shffle.patitions```
 # MAGIC
-# MAGIC ![Narrow vs Wide Transformation](./images/Narrow_And_Wide_Transformation.png)
+# MAGIC ![Narrow vs Wide Transformation](/images/Narrow_And_Wide_Transformation.png)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Clusters
+# MAGIC - Example with a Cluster has 1 Driver, 6 Workers. Each Worker has 1 Executor and 2 Cores.
+# MAGIC   - Driver: brain of cluster which allocate tasks and data to worker nodes
+# MAGIC   - Worker: receives tasks and data, performs and return result to Deiver
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Process of Narrow Transformation
+# MAGIC Example: Filter color != "brown". We have 12-16 memory partitions of data
+# MAGIC - Step 1: Driver puts data files into 12-16 equal sized parition
+# MAGIC - Step 2: Driver allocates 12 partitions to 12 Cores, each Core gets 1 partition --> Opps we still have 4 partitions left
+# MAGIC - Step 3: 4 Cores finish early and return result to Driver. The other Cores are still processing
+# MAGIC - Step 4: Driver allocates 4 partitions for another iteration to the 4 Cores. The other Cores finish
+# MAGIC - Step 5: 4 Cores finish the 2nd iteration and return resul to Driver
+# MAGIC - Step 6: Driver collects the result and delivers to the client
 # MAGIC
+# MAGIC ![Process of Narrow Transformation](/images/Narrow_Transformation_Example.png)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Process of Wide Transformation
+# MAGIC Example: Count total rows for each color. We have **19.5 MiB** data size, with 6 initial partitions
+# MAGIC - Stage 1: Local cCount
+# MAGIC   - Step 1: Driver allocates 6 partitions to 6 Cores, each Core gets 1 partition
+# MAGIC   - Step 2: 6 Cores finish early and **write** the result into Disk in dictionary key:value, so the file is only **568B**. For example:
+# MAGIC     - Core 2: Red:3, Blue:5, Yellow:7
+# MAGIC     - Core 3: Red:4, Blue:4, Yellow:8
+# MAGIC     - ...
+# MAGIC     - Core 12: Red:7, Blue:5, Yellow:5
+# MAGIC - Stage 2: Global Count
+# MAGIC   - Step 1: Driver allocates Core 7 to read the counts and do the "Global Count", then send the result
+# MAGIC   - Step 2: Core 7 **read** and sum the Local Counts and return the result to Driver
+# MAGIC   - Step 3: Driver collects the result and delivers to the client
+# MAGIC
+# MAGIC ![Process of Wide Transformation](/images/Wide_Transformation_Exmaple.png)
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ## Performance and Query Optimization
+# MAGIC There are 5 plans:
+# MAGIC
+# MAGIC **Input: Query, no matter programming language -->**
+# MAGIC 1. Unresolved Logical Plan
+# MAGIC     - Drive reviews and confirms the **```schema correct?```**
+# MAGIC
+# MAGIC 2. Analyzed Logical Plan
+# MAGIC     - Drive looks at **[Metadata Catalog] for ANALYSIS** and **```add data types```** to the columns
+# MAGIC
+# MAGIC 3. Optimized Logical Plan
+# MAGIC     - Driver looks at **[Catalyst Catalog] for LOGICAL OPTIMIZATION** and check to apply number of rules-based (Filter, Join, etc.) to determine whether to **```move Filter before Join?```**
+# MAGIC
+# MAGIC 4. Physical Plan
+# MAGIC     - Driver comes up with several ways (plans) to address the query **for PHYSICAL PLANNING** to determine **```which Join strategy to use, Data Skipping, Predicate Pushdown?```**
+# MAGIC
+# MAGIC 5. Selected Physical Plan
+# MAGIC     - Driver puts ways in **[Cost Model] for WHOLE-STAGE CODE GENERATION** to see which way (plan) needs lowest cost = the best
+# MAGIC     - The plan would be **```Java bytecode and sent to Executors```**
+# MAGIC
+# MAGIC **--> Output: RDD, no matter dataframe, sql table or view**
 
 # COMMAND ----------
 
