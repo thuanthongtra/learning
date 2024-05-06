@@ -237,13 +237,80 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # MAGIC %md
 # MAGIC ### Adaptive Query Execution (AQE)
 # MAGIC ![Adaptive Query Execution (AQE)](./images/AQE.png)
-# MAGIC
 # MAGIC - After RDD created, Spark will look at Statistics and shuffle count to see how big they are. Then, it will turn back to Analyzed Logical Plan to see whether it can fine-tune the number of shuffle.
 # MAGIC
-# MAGIC ![With And Without AQE](./images/With_Without_AQE.png)
 # MAGIC
+# MAGIC ![With And Without AQE](./images/With_Without_AQE.png)
+# MAGIC - **Without AQE:** we (1) start with 4 memory partitions and (2) end up with 200 memory partitions. **_But why does it need to shuffle 200 partitions for only 568B?_**, which mean 2B foreach partition --> too small
+# MAGIC - **With AQE:** we (1) start with 4 memory partitions and (2) end up with 1 partition, and much faster, even without parallism
+# MAGIC
+# MAGIC
+# MAGIC ![Number of Jobs of AQE](./images/AEQ_Number_Of_Jobs.png)
+# MAGIC - Number of jobs **increase** from 1 to 3 (job #3, #4, #5)
+# MAGIC   - Job #3 filters at WHERE clause to reduce size.
+# MAGIC   - Job #4 with AQE, needs 1 Shuffle
+# MAGIC - Hence, it **has cost overhead** with it, but it has benefit in long run
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Predicate Pushdown on RDDs
+# MAGIC - Predicate Pushdown is when the data source actively **limits the number** of rows returned to Spark reader vi SELECT/WHERE/FILTER
+# MAGIC - Predicate Pushdown filters the data in the database query,
+# MAGIC   - Reducing the number of entries retrieved from the source database and 
+# MAGIC   - Improving query performance
+# MAGIC   - By default, the Spark Dataset API will automatically push down valid WHERE clauses to the database
+# MAGIC - **Cast** function cannot be Pushed down
+# MAGIC
+# MAGIC ![Predicate Pushdown](./images/Predicate_Pushdown.png)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Caching - Best Practices
+# MAGIC - Don't cach unless you're sure a DataFrame will be **used multiple times**
+# MAGIC   - e.g. EDA (Exploratory Data Analysis), ML traning dataset
+# MAGIC - Omit unneeded columns to reduce the storage footprint
+# MAGIC - After calling `.cache()` which is **lazy transformation**, ensure all partitions are accessed with **Action**
+# MAGIC   - e.g. `count()` - put RDD into Cache
+# MAGIC - Manually evict cache when not needed
+# MAGIC   - e.g. `unpersist()` - remove RDD from Cache
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ## Memory Partitioning
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Guidelines
+# MAGIC - Error on the side of **too many small** than to few large Memory Partitions. If so large memory, then the core does not have enough memory, leading 2 possible consequences:
+# MAGIC   - Spill to disk, waiting for more RAM, then bring it back
+# MAGIC   - OOM: out of memory error
+# MAGIC - Sweet spot initial size: **128MB and 1GB**
+# MAGIC - Calculate the size of Shuffle partitions by dividing Shuffle stage input (4TB) by the target partition size (200MB).
+# MAGIC   - e.g. 4TB / 200MB = 20,000 Shuffle Partition count
+# MAGIC   - By default, it is 200 `spark.conf.get("spark.sql.shuffle.partitions")`
+# MAGIC - Can manually set number of Shuffle Partitions on case-by-case basis
+# MAGIC   - `spark.conf.set("spark.sql.shuffle.partitions", "20000")`
+# MAGIC   - This setting is Local for **1 session** only.
+# MAGIC
+# MAGIC ![200_Default_Partitions](./images/200_Default_Partitions.png)
+# MAGIC - Example: 
+# MAGIC   - It starts with 8 partitions, then spawns 200 shuffle partitions
+# MAGIC   - But there are only 42KB (~no thing) to write
+# MAGIC   - Even some of tasks which means memory partitions reside has 0 bytes (blank)
+# MAGIC   - It looks like AEQ turned off --> turn it on
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Cores in Cluster
+# MAGIC - No. of Memory Partitions the Driver creates
+# MAGIC - No. of Cores in Cluster. More Cores, more Patitions
+# MAGIC - Get to number of Cores by 2 ways:
+# MAGIC   - `sc.defaultParallelism` or `spark.sparkContext.defaultParallelism`
+# MAGIC   - Spark UI -> Cores
+# MAGIC ![Spark UI](./images/Spark_UI_Cores.png)
+# MAGIC
