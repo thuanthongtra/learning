@@ -245,7 +245,7 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # MAGIC - **With AQE:** we (1) start with 4 memory partitions and (2) end up with 1 partition, and much faster, even without parallism
 # MAGIC
 # MAGIC
-# MAGIC ![Number of Jobs of AQE](./images/AEQ_Number_Of_Jobs.png)
+# MAGIC ![Number of Jobs of AQE](./images/AQE_Number_Of_Jobs.png.png)
 # MAGIC - Number of jobs **increase** from 1 to 3 (job #3, #4, #5)
 # MAGIC   - Job #3 filters at WHERE clause to reduce size.
 # MAGIC   - Job #4 with AQE, needs 1 Shuffle
@@ -312,5 +312,6 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # MAGIC - Get to number of Cores by 2 ways:
 # MAGIC   - `sc.defaultParallelism` or `spark.sparkContext.defaultParallelism`
 # MAGIC   - Spark UI -> Cores
-# MAGIC ![Spark UI](./images/Spark_UI_Cores.png)
+# MAGIC   
+# MAGIC   ![Spark UI](./images/Spark_UI_Cores.png)
 # MAGIC
