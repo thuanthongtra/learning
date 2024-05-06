@@ -225,7 +225,9 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # MAGIC
 # MAGIC - Enable configurations: CBO, join reorder
 # MAGIC - In script, (2) we join **```large```** table to **```medium```** table, then (1) we join **```small```** table
-# MAGIC - In CBO step, it chooses to (1) get **```small```** table join with **```medium```** table then koin with **```large```** table last
+# MAGIC - In CBO step, it chooses to:
+# MAGIC   - (1) get **```small```** table join with **```medium```** table then join with **```large```** table last
+# MAGIC   - Afterward, (2) it does shuffle/exchange
 # MAGIC
 # MAGIC
 # MAGIC
@@ -235,6 +237,10 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # MAGIC %md
 # MAGIC ### Adaptive Query Execution (AQE)
 # MAGIC ![Adaptive Query Execution (AQE)](./images/AQE.png)
+# MAGIC
+# MAGIC - After RDD created, Spark will look at Statistics and shuffle count to see how big they are. Then, it will turn back to Analyzed Logical Plan to see whether it can fine-tune the number of shuffle.
+# MAGIC
+# MAGIC ![With And Without AQE](./images/With_Without_AQE.png)
 # MAGIC
 
 # COMMAND ----------
