@@ -245,7 +245,7 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 # MAGIC - **With AQE:** we (1) start with 4 memory partitions and (2) end up with 1 partition, and much faster, even without parallism
 # MAGIC
 # MAGIC
-# MAGIC ![Number of Jobs of AQE](./images/AQE_Number_Of_Jobs.png.png)
+# MAGIC ![Number of Jobs of AQE](./images/AQE_Number_Of_Jobs.png)
 # MAGIC - Number of jobs **increase** from 1 to 3 (job #3, #4, #5)
 # MAGIC   - Job #3 filters at WHERE clause to reduce size.
 # MAGIC   - Job #4 with AQE, needs 1 Shuffle
@@ -307,11 +307,44 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 
 # MAGIC %md
 # MAGIC ### Cores in Cluster
-# MAGIC - No. of Memory Partitions the Driver creates
-# MAGIC - No. of Cores in Cluster. More Cores, more Patitions
+# MAGIC - Initially, the Driver determines the number of Memory Partitions and its size. It decides based on:
+# MAGIC   - Number of Cores in Cluster. 
+# MAGIC   - More Cores, more Patitions.
 # MAGIC - Get to number of Cores by 2 ways:
 # MAGIC   - `sc.defaultParallelism` or `spark.sparkContext.defaultParallelism`
 # MAGIC   - Spark UI -> Cores
 # MAGIC   
 # MAGIC   ![Spark UI](./images/Spark_UI_Cores.png)
 # MAGIC
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### No. of Memory Partition for DataFrame
+# MAGIC - If Memory Partitions are sized too large (> 1GB), we can manually change in No. of Partitions (to higher number) to get them into a more reasonable size rang (**128MB** to **1GB**)
+# MAGIC - AQE can resolve some Partitions issues
+# MAGIC   - e.g. for small dataset, AQE won't create default 200 Shuffle Partitions, but rather a far lower number
+# MAGIC - We need to **convert DataFrame into RDD** to get number of Partitions used for the DataFrame
+# MAGIC   - `df.rdd.getNumPartitions()`
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Re-Partition a DataFrame
+# MAGIC There are 2 ways:
+# MAGIC 1. **`coalesce(int)`:**
+# MAGIC     - Returns new DF with exactly N partitions when N < current No. of Partitions
+# MAGIC     - **Narrow** transformation
+# MAGIC     - Retain sort order
+# MAGIC     - Only decrease No. of Partitions
+# MAGIC
+# MAGIC 2. **`repartition(int, [col])`:**
+# MAGIC     - Return new DF with exactly N partitions
+# MAGIC     - Evenly balanced partition sizes
+# MAGIC     - **Wide** transformation
+# MAGIC     - Not retain sort order
+# MAGIC     - Both increase/decrease No. of Partition
+# MAGIC
+# MAGIC **Notes:**
+# MAGIC   - More No. of Partition, less size
+# MAGIC   - Less No. of Paritions, more size
