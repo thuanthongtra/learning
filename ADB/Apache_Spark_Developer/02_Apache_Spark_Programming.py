@@ -368,15 +368,103 @@ dbultils.widgets.multiselect("Multiselect", "Yes", ["Yes", "No", "Maybe"])
 
 # COMMAND ----------
 
-
+# MAGIC %md
+# MAGIC ### Sources:
+# MAGIC - Kafka, Files, Event Hubs, Kinesis
+# MAGIC - DataFrame
+# MAGIC   - ```
+# MAGIC     df = (spark.readStream
+# MAGIC               .option("maxFilesPerTrigger", 1)
+# MAGIC               .format("delta")
+# MAGIC               .load(DA.paths.events)
+# MAGIC             )
+# MAGIC     df.isStreaming
+# MAGIC     ```
+# MAGIC - SQL Views & Tables
+# MAGIC   - ```
+# MAGIC     df.createOrReplaceTempView("v_event")
+# MAGIC     spark.readStream.format("delta").table("v_event")
+# MAGIC     ```
 
 # COMMAND ----------
 
-
+# MAGIC %md
+# MAGIC ### Sinks
+# MAGIC - **Where** to write data: Kafka, Files, Event Hubs/EventGrid, Foreach(Batch) for custom logic to store data
+# MAGIC - **What** data to write (Output Modes)
+# MAGIC   - APPEND: **add new** records only
+# MAGIC   - UPDATE **update changed** records in place
+# MAGIC     - Only rows updated since last trigger written
+# MAGIC     - Different from **Complete** mode since **Update** mode outputs only changed rows since last trigger
+# MAGIC     - If query does not contain aggregations, **Update** same as **Append** mode
+# MAGIC   - COMPLETE: **rewrite** full output
+# MAGIC   - Example:
+# MAGIC   
+# MAGIC     ![Output Modes](./images/Output_Modes.png)
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ### Trigger Types
+# MAGIC - Default: Process each micro-batch as soon as previous one has been processed (or 500ms). *No coding required for this*. **Not recommended**
+# MAGIC - Fixed interval: Micro-batch processing kicked off at the **user-specified interval** 
+# MAGIC   - `.trigger(processingTime="1 second")` = every 1 second, bring new data
+# MAGIC - One-time: Process **all** available data as **a single micro-batch** and then automatically stop the query 
+# MAGIC   - `.trigger(once=True)` for manually trigger
+# MAGIC - AvailableNow: Like Trigger One, available data processed before query stops, but in **multiple batches** instead of one 
+# MAGIC   - `.trigger(availableNow=True)` **--> Recommended**
+# MAGIC - ContinuousProcessing: Long-running tasks that **continuously read, process and write** data as soon events are available 
+# MAGIC   - `.trigger(continuous="1 second")`
 
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### End-to-end fault tolerance
+# MAGIC Guaranteed in Structure Streaming by:
+# MAGIC 1. Checkpointing: Directed Acyclic Graph (DAG) of all DStream transformation stored in reliable storage (along with optional State)
+# MAGIC     - `dbultils.fs.ls(checkpoitPath)`
+# MAGIC 2. Write-ahead logs: To commit offsets
+# MAGIC     - Before it reads data into RAM, it writes data into disk system. Then it commits offsets. Hence, it knows where it left off in case there are interuption, then when the stream turn on, it switch back to where is left.
+# MAGIC 3. Idempoten sinks: Writes given row only once, even if sent multiple
+# MAGIC 4. Replayable data sources: Join allowed to poll data again
+# MAGIC
+# MAGIC ![Checkpointing](./images/Checkpointing.png)
+# MAGIC
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Example: Complete Stream Query
+# MAGIC ![Complete Streaming Query](./images/Complete_Streaming_Query.png)
+# MAGIC
+# MAGIC **Step 1:** Read Stream (lazy)
+# MAGIC   - `.option("maxFilesPerTrigger", 1)` - how much data to read, in this case 1 file at a time
+# MAGIC     - It helps not overrun resource
+# MAGIC     - We can also use `.option("maxBytesPerTrigger", 1000)`
+# MAGIC   - All of them will be held in RAM
+# MAGIC
+# MAGIC **Step 2:** Transformation
+# MAGIC
+# MAGIC **Step 3:** Write Stream (lazy)
+# MAGIC   - `emailTrafficDF.writeStream` write the DF in step 2 to disk
+# MAGIC   - `querryName("email_traffic)` the name of this query, It is good to provide name for query.
+# MAGIC   - `option("checkpointLocation", checkpointPath)` it is **mandatory**
+# MAGIC   - `start(outputPath)` write into directory. `start` is **Action**
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Streaming Best Practices
+# MAGIC 1. Select trigger interval over nothing to unintended cost
+# MAGIC 2. Use ADLS Gen2 > Blob storage for Azure
+# MAGIC 3. Name the Streaming job so it's easily identifiable
+# MAGIC 4. Don't run multitple Stream on the same Driver. Multiplexing on same cluster is generally not recommended
+# MAGIC 5. Alter `maxFilesPerTrigger` or `maxBytesPerTrigger` to achieve Partition sized around **128MB - 200MB** (for best latency and throughput)
+# MAGIC 6. Can convert `SortMergeJoin` to `BroadcastHashJoin`. May need to increase auto-broadcast hash join threshold to larger size
+# MAGIC 7. If have Shuffle, consider setting Shuffle Partition number manually (since AQE is disabled in Streaming) to match number of Cores or 2x number of Cores
+# MAGIC 8. Turn off Stats collection on initial Stream to decrease latency
+# MAGIC 9. If possible, Auto-Optimize initial Stream to coalesce tiny files
+# MAGIC 10. Use compute-optimized workers and RocksDB state store
 
 # COMMAND ----------
 
