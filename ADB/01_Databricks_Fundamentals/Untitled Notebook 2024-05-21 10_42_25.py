@@ -44,7 +44,8 @@
 # MAGIC %md
 # MAGIC ## Data Lakehouse
 # MAGIC - In 2021, advent of Lakehouse architect paradigm
-# MAGIC - An opent unified foundation for all data
+# MAGIC - An open unified foundation for all data
+# MAGIC
 # MAGIC ![Data Lakehouse Overview](./images/Data_Lakehouse_Overview.npg)
 # MAGIC
 # MAGIC - It combines the benefits of Data Lake and analytical power of Data Warehouse
@@ -64,3 +65,16 @@
 # MAGIC - **Support for diverse data types:** structured, semi-structured, unstructured
 # MAGIC - **Support for diverse workloads:** DE, ML, AI workloads
 # MAGIC - **End-to-end streaming**: for real-time reports, remove the need of intermediate systems
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Data Intelligence Platform
+# MAGIC ![Data Intelligence Platform](./images/Data_Intelligence_Platform.npg)
+# MAGIC
+# MAGIC Data Intelligence Platform is built on the foundation of Data Lakehouse
+# MAGIC
+# MAGIC ![Data Lakehouse With Generative AI](./images/Data_Lakehouse_With_Generative_AI.npg)
+# MAGIC - Now the Lakehouse has Generative AI available to support all areas of work
+# MAGIC   - Generative AI understands the sematic of the data and then infuse it throughout the whole platform
+# MAGIC
