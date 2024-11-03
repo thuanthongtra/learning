@@ -1,7 +1,7 @@
 # Databricks notebook source
 # MAGIC %md
 # MAGIC # W1 
-# MAGIC - Think Fast --> Selft Service
+# MAGIC - Think Fast --> Self Service
 
 # COMMAND ----------
 
